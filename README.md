@@ -34,15 +34,22 @@ The goal of the project is to transform **raw Fitbit exports** into **clean, str
 ```
 FitBit/
 │
-├── DataPreprocessing.ipynb
-├── Visualisations.ipynb
-├── README.md
-├── .gitignore
+├── ⚙️ .gitignore
+├── 📄 DataPreprocessing.ipynb
+├── 📄 FitBit_Io.ipynb
+├── 📄 FitBit_ba.ipynb
+├── 📄 FitBit_lr.ipynb
+├── 📄 FitBit_su.ipynb
+├── 📄 FitBit_vid.ipynb
+├── 📄 Fitbit_vi.ipynb
+├── 📝 README.md
+├── 📄 Visualisations.ipynb
+├── 🐍 app.py
+└── 📄 dataprocessingpipeline.codediagram
 │
 └── (Local only – not tracked)
     ├── DataSet/
     ├── cleaned_output/
-    └── cleaned_output_backup/
 ```
 
 ### Tracked Files
