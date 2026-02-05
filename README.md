@@ -125,7 +125,7 @@ Plots include:
 
 ---
 
-## 🔐 Ethics & Privacy
+## Ethics & Privacy
 
 * **No personal or raw Fitbit data is shared**
 * All data processing is performed **locally**
@@ -134,7 +134,7 @@ Plots include:
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 * **Python**
 * **Pandas**
