@@ -1,6 +1,6 @@
-# 🩺 Fitbit Health Data Analysis & Preprocessing Pipeline
+# Fitbit Health Data Analysis & Preprocessing Pipeline
 
-## 📌 Project Overview
+## Project Overview
 
 This repository contains a **data preprocessing and exploratory analysis pipeline** for Fitbit health data.
 The goal of the project is to transform **raw Fitbit exports** into **clean, structured, analysis-ready datasets**, enabling reliable study of physiological trends such as:
@@ -15,7 +15,7 @@ The goal of the project is to transform **raw Fitbit exports** into **clean, str
 
 ---
 
-## 🎯 Objectives
+## Objectives
 
 * Build a **reproducible data cleaning pipeline**
 * Process Fitbit data **participant-wise**
@@ -29,7 +29,7 @@ The goal of the project is to transform **raw Fitbit exports** into **clean, str
 
 ---
 
-## 🗂️ Repository Structure
+## Repository Structure
 
 ```
 FitBit/
@@ -97,7 +97,7 @@ This two-stage approach ensures:
 
 ---
 
-## 📊 Analysis Focus
+## Analysis Focus
 
 Current analyses explore:
 
@@ -137,7 +137,7 @@ Plots include:
 
 ---
 
-## 🚀 How to Use (Locally)
+## How to Use (Locally)
 
 1. Place Fitbit export inside a local `DataSet/` folder
 2. Run `DataPreprocessing.ipynb`
@@ -148,7 +148,7 @@ Plots include:
 
 ---
 
-## 👤 Author
+## Author
 
 **Maeve Fernandes**
 MSc Software Technology
