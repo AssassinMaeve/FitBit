@@ -1,4 +1,4 @@
-# Fitbit Health Data Analysis & Preprocessing Pipeline
+# Analysis of Behavioural and Physiological Trends in Type 2 Diabetes Using Fitbit Data
 
 ## Project Overview
 
