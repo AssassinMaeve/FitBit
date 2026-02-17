@@ -142,7 +142,3 @@ python run_pipeline.py
 **Maeve Fernandes**
 MSc Software Technology
 Research focus: Health Data Analysis & Applied Data Science
-
-```
-
-```
