@@ -1,9 +1,75 @@
-DataSet/
-cleaned_output/
-cleaned_output_backup/
+# ===========================
+# Project Specific
+# ===========================
 
-*.xlsx
-*.csv
+# 1. Data
+# We never commit datasets (security & size reasons).
+# This ignores everything inside data/, but keeps the folder structure.
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
 
-.ipynb_checkpoints/
+# 2. Logs
+# Ignore execution logs
+logs/*
+!logs/.gitkeep
+
+# 3. Configuration
+# (Optional) If config.yaml contains secrets/passwords, uncomment the line below.
+config/config.yaml
+
+
+# ===========================
+# Python Standard
+# ===========================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / Packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# ===========================
+# IDE & OS
+# ===========================
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
