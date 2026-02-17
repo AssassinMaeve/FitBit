@@ -1,157 +1,176 @@
-# Fitbit Health Data Analysis & Preprocessing Pipeline
+# Analysis of Behavioural and Physiological Trends in Type 2 Diabetes Using Fitbit Data
 
-## Project Overview
+A modular, production-ready MLOps pipeline designed to ingest, clean, and analyze physiological data from Fitbit devices. This project transforms raw Fitbit exports into clean, structured, analysis-ready datasets, enabling reliable study of physiological trends such as glucose levels, sleep quality, heart rate, and stress metrics.
 
-This repository contains a **data preprocessing and exploratory analysis pipeline** for Fitbit health data.
-The goal of the project is to transform **raw Fitbit exports** into **clean, structured, analysis-ready datasets**, enabling reliable study of physiological trends such as:
 
-* Glucose levels
-* Sleep quality
-* Heart rate
-* Physical activity
-* Stress and recovery metrics
 
-⚠️ **Raw Fitbit data is intentionally excluded** from this repository for **privacy, ethics, and storage constraints**.
+> **Note:** This repository contains the **code and methodology only**. Raw Fitbit data is intentionally excluded for privacy, ethics, and storage constraints.
 
 ---
 
 ## Objectives
 
-* Build a **reproducible data cleaning pipeline**
-* Process Fitbit data **participant-wise**
-* Separate and clean **individual physiological signals**
-* Prepare datasets for **time-series analysis and visualization**
-* Explore relationships such as:
-
-  * Glucose vs sleep quality
-  * Glucose vs activity
-  * Fasting vs post-meal glucose trends
+* **Build a Reproducible Pipeline:** Move from manual notebooks to a scalable Python package.
+* **Participant-Wise Processing:** Ingest and clean data for specific subjects (e.g., `Fitbit_ba`, `Fitbit_lo`).
+* **Signal Separation:** Automatically separate distinct physiological signals (Heart Rate, SpO2, Sleep) into dedicated datasets.
+* **Automated Analysis:** Generate time-series trends, distributions, and correlation maps automatically.
+* **Explore Relationships:** Enable research into Glucose vs. Sleep, Activity vs. Stress, and more.
 
 ---
 
 ## Repository Structure
 
-```
+The project has been refactored from a notebook-based workflow into a professional MLOps structure:
+
+```text
 FitBit/
-│
-├── ⚙️ .gitignore
-├── 📄 DataPreprocessing.ipynb
-├── 📄 FitBit_Io.ipynb
-├── 📄 FitBit_ba.ipynb
-├── 📄 FitBit_lr.ipynb
-├── 📄 FitBit_su.ipynb
-├── 📄 FitBit_vid.ipynb
-├── 📄 Fitbit_vi.ipynb
-├── 📝 README.md
-├── 📄 Visualisations.ipynb
-├── 🐍 app.py
-└── 📄 dataprocessingpipeline.codediagram
-│
-└── (Local only – not tracked)
-    ├── DataSet/
-    ├── cleaned_output/
+├── config/
+│   └── config.yaml          # Control center: subjects, paths, settings
+├── data/
+│   ├── raw/                 # (Ignored) Place your raw 'Fitbit_xx' folders here
+│   └── processed/           # (Ignored) Cleaned Excel files appear here
+├── logs/
+│   └── pipeline.log         # Execution logs for debugging
+├── reports/                 # (Ignored) Generated graphs and CSV stats
+├── src/
+│   ├── __init__.py
+│   ├── ingestion.py         # Logic for reading and merging files (Stage 1)
+│   ├── cleaning.py          # Logic for standardization & validation (Stage 2)
+│   ├── analysis.py          # Logic for visualization & reporting
+│   └── utils.py             # Helpers for logging and config loading
+├── run_pipeline.py          # Main execution script
+├── requirements.txt         # Project dependencies
+└── README.md
+
 ```
 
-### Tracked Files
-
-* **`DataPreprocessing.ipynb`**
-  Implements the full preprocessing pipeline:
-
-  * Folder filtering
-  * Cleaning
-  * Deduplication
-  * Signal-wise separation
-
-* **`Visualisations.ipynb`**
-  Exploratory analysis and plots:
-
-  * Time-series trends
-  * Daily averages
-  * Glucose–sleep–activity relationships
-
-### Ignored Files
-
-* Raw Fitbit exports
-* Cleaned Excel outputs
-* Large `.csv` / `.xlsx` files
-
-(Handled via `.gitignore`)
-
 ---
 
-## 🔬 Data Processing Pipeline
+## Data Processing Pipeline
 
-### Stage 1 — Structural Preprocessing
+The pipeline operates in three distinct stages, fully automated via `run_pipeline.py`.
 
-* Process **one participant at a time**
-* Filter **only physiological folders**
-* Merge multiple Fitbit exports per signal
-* Normalize column names and timestamps
-* Export **one Excel file per physiological category**
+### Stage 1: Ingestion & Structural Preprocessing
 
-### Stage 2 — Analytical Cleaning
+* **Participant-wise crawling:** Recursively searches `data/raw/` for specific subject folders.
+* **Idempotency Check:** Smartly skips files that have already been processed to save time.
+* **Merging:** Combines multiple export files for the same category into a single DataFrame.
 
-* Remove null-only rows
-* Remove duplicate entries
-* Remove rows without numeric signal values
-* Produce **analysis-ready datasets**
+### Stage 2: Analytical Cleaning
 
-This two-stage approach ensures:
+* **Standardization:** Normalizes column names (`snake_case`) and fixes mixed date formats.
+* **Sanitization:** Removes null-only rows, duplicates, and non-numeric signal errors.
+* **Output:** Saves clean, compressed Excel files to `data/processed/`.
 
-* Scalability
-* Transparency
-* Research-grade cleanliness
+### Stage 3: Automated Analysis
 
----
-
-## Analysis Focus
-
-Current analyses explore:
-
-* Glucose trends over time
-* Daily average glucose
-* Fasting vs post-meal glucose
-* Associations with:
-
-  * Sleep score
-  * Physical activity
-  * Time of day
-
-Plots include:
-
-* Line charts (time-series)
-* Daily aggregation trends
-* Comparative signal analysis
-
----
-
-## Ethics & Privacy
-
-* **No personal or raw Fitbit data is shared**
-* All data processing is performed **locally**
-* Repository contains **only code and methodology**
-* Designed to comply with ethical research standards
-
----
-
-## Technologies Used
-
-* **Python**
-* **Pandas**
-* **Matplotlib / Seaborn**
-* **Jupyter Notebook**
-* **Git & GitHub**
+* **Trend Analysis:** Generates line charts for time-series data (e.g., Glucose over time).
+* **Distribution:** Creates histograms to visualize data spread (e.g., Daily Step Counts).
+* **Correlations:** Produces heatmaps to identify relationships between metrics (e.g., Sleep Score vs. Activity).
 
 ---
 
 ## How to Use (Locally)
 
-1. Place Fitbit export inside a local `DataSet/` folder
-2. Run `DataPreprocessing.ipynb`
-3. Run cleaning scripts to generate cleaned Excel files
-4. Perform analysis using `Visualisations.ipynb`
+### 1. Setup Environment
 
-> ⚠️ Fitbit data files are not provided in this repository.
+```bash
+# Clone the repo
+git clone [https://github.com/AssassinMaeve/Fitbit.git](https://github.com/your-username/Fitbit.git)
+cd Fitbit
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install package in editable mode
+pip install -e .
+
+```
+
+### 2. Prepare Data
+
+Place your raw Fitbit export folders inside the `data/raw/` directory.
+
+* Example: `data/raw/Fitbit_ba/`
+
+### 3. Configure Pipeline
+
+Edit `config/config.yaml` to list the subjects you want to process:
+
+```yaml
+subjects:
+  - "Fitbit_ba"
+  - "Fitbit_lo"
+
+```
+
+### 4. Run Pipeline
+
+```bash
+python run_pipeline.py
+
+```
+
+### 5. View Results
+
+* **Clean Data:** `data/processed/{subject}_cleaned/`
+* **Visual Reports:** `reports/{subject}/`
+* **Logs:** `logs/pipeline.log`
+
+---
+
+## Ethics & Privacy
+
+* **No Personal Data:** No raw or processed participant data is committed to this repository.
+* **Local Processing:** All cleaning and analysis happen locally on your machine.
+* **Compliance:** The pipeline design adheres to standard ethical research guidelines for health data handling.
+
+---
+graph TD
+    %% Nodes
+    Config[config/config.yaml]:::config
+    Raw[data/raw/]:::data
+    
+    Orch(run_pipeline.py):::script
+    
+    subgraph "src/ Module"
+        Ingest[ingestion.py]:::script
+        Clean[cleaning.py]:::script
+        Analyze[analysis.py]:::script
+    end
+    
+    Processed[data/processed/]:::data
+    Reports[reports/]:::data
+    Log[logs/pipeline.log]:::logs
+
+    %% Flows
+    Config --> Orch
+    Raw --> Ingest
+    Orch --> Ingest
+    Ingest --> Clean
+    Clean --> Processed
+    Processed --> Analyze
+    Orch --> Analyze
+    Analyze --> Reports
+    
+    %% Logging (Dashed)
+    Orch -.-> Log
+    Ingest -.-> Log
+    Clean -.-> Log
+    Analyze -.-> Log
+
+    %% Styling
+    classDef config fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
+    classDef data fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
+    classDef script fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
+    classDef logs fill:#f5f5f5,stroke:#666666,stroke-width:2px,stroke-dasharray: 5 5;
+## Technologies Used
+
+* **Python 3.10+**
+* **Pandas** (Data Manipulation)
+* **Seaborn & Matplotlib** (Visualization)
+* **PyYAML** (Configuration Management)
+* **OpenPyXL** (Excel I/O)
 
 ---
 
@@ -160,3 +179,7 @@ Plots include:
 **Maeve Fernandes**
 MSc Software Technology
 Research focus: Health Data Analysis & Applied Data Science
+
+```
+
+```
