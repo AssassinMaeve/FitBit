@@ -126,44 +126,7 @@ python run_pipeline.py
 * **Compliance:** The pipeline design adheres to standard ethical research guidelines for health data handling.
 
 ---
-graph TD
-    %% Nodes
-    Config[config/config.yaml]:::config
-    Raw[data/raw/]:::data
-    
-    Orch(run_pipeline.py):::script
-    
-    subgraph "src/ Module"
-        Ingest[ingestion.py]:::script
-        Clean[cleaning.py]:::script
-        Analyze[analysis.py]:::script
-    end
-    
-    Processed[data/processed/]:::data
-    Reports[reports/]:::data
-    Log[logs/pipeline.log]:::logs
 
-    %% Flows
-    Config --> Orch
-    Raw --> Ingest
-    Orch --> Ingest
-    Ingest --> Clean
-    Clean --> Processed
-    Processed --> Analyze
-    Orch --> Analyze
-    Analyze --> Reports
-    
-    %% Logging (Dashed)
-    Orch -.-> Log
-    Ingest -.-> Log
-    Clean -.-> Log
-    Analyze -.-> Log
-
-    %% Styling
-    classDef config fill:#fff2cc,stroke:#d6b656,stroke-width:2px;
-    classDef data fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px;
-    classDef script fill:#d5e8d4,stroke:#82b366,stroke-width:2px;
-    classDef logs fill:#f5f5f5,stroke:#666666,stroke-width:2px,stroke-dasharray: 5 5;
 ## Technologies Used
 
 * **Python 3.10+**
