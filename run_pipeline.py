@@ -2,6 +2,7 @@ import logging
 from src.utils import load_config, setup_logging
 from src.ingestion import process_subject
 from src.analysis import analyze_subject
+from src.reporting import generate_pdf_report
 
 def main():
     # 1. Setup
@@ -21,6 +22,9 @@ def main():
 
             # Step 2: Analysis & Reporting
             analyze_subject(subject, config)
+
+            # Step 3: (Optional) PDF Report Generation - Can be added here if needed
+            generate_pdf_report(subject, config)
 
         except Exception as e:
             logging.error(f" Critical error processing {subject}: {e}")
