@@ -1,92 +1,60 @@
-# Analysis of Behavioural and Physiological Trends in Type 2 Diabetes Using Fitbit Data
+# FitBit Data Processing & Analysis Pipeline
 
-A modular, production-ready MLOps pipeline designed to ingest, clean, and analyze physiological data from Fitbit devices. This project transforms raw Fitbit exports into clean, structured, analysis-ready datasets, enabling reliable study of physiological trends such as glucose levels, sleep quality, heart rate, and stress metrics.
+A modular, production-ready Python pipeline designed to ingest, clean, and analyze physiological data from Fitbit devices.
 
-
+This project transforms messy raw Fitbit data exports into structured, analysis-ready binary datasets. It provides fully automated time-series analysis, statistical summaries, Exploratory Data Analysis (EDA), and compiles these insights into comprehensive and easy-to-read PDF reports.
 
 > **Note:** This repository contains the **code and methodology only**. Raw Fitbit data is intentionally excluded for privacy, ethics, and storage constraints.
 
 ---
 
-## Objectives
+## Key Features
 
-* **Build a Reproducible Pipeline:** Move from manual notebooks to a scalable Python package.
-* **Participant-Wise Processing:** Ingest and clean data for specific subjects (e.g., `Fitbit_ba`, `Fitbit_lo`).
-* **Signal Separation:** Automatically separate distinct physiological signals (Heart Rate, HRV, SpO2, Sleep, Glucose) into dedicated datasets.
-* **Automated Analysis:** Generate time-series trends and periodic summaries (weekly & monthly) automatically.
-* **PDF Reporting:** Generate comprehensive PDF health reports with executive summaries, data quality assessments, and visualizations.
-* **Explore Relationships:** Enable research into Glucose vs. Sleep, Activity vs. Stress, and more.
-
----
-
-## Repository Structure
-
-The project has been refactored from a notebook-based workflow into a professional MLOps structure:
-
-```text
-FitBit/
-├── config/
-│   └── config.yaml          # Control center: subjects, paths, settings
-├── data/
-│   ├── raw/                 # (Ignored) Place your raw 'Fitbit_xx' folders here
-│   └── processed/           # (Ignored) Cleaned Excel files appear here
-├── logs/
-│   └── pipeline.log         # Rotating execution logs (max 1MB, 3 backups)
-├── reports/                 # (Ignored) Generated PDFs, graphs, and CSV stats
-├── src/
-│   ├── __init__.py
-│   ├── ingestion.py         # Logic for reading and merging files (Stage 1)
-│   ├── cleaning.py          # Logic for standardization & validation (Stage 2)
-│   ├── analysis.py          # Logic for visualization & time-series analysis
-│   ├── reporting.py         # PDF report generation
-│   └── utils.py             # Helpers for logging, config, and filename sanitization
-├── run_pipeline.py          # Main execution script
-├── requirements.txt         # Project dependencies
-└── README.md
-```
+* **High-Performance Parquet Caching:** Uses Apache Parquet (`.parquet`) for intermediate data storage, offering massive I/O speedups over traditional CSV/Excel caching.
+* **Massively Parallel Processing:** Leverages multi-core CPUs via `ProcessPoolExecutor` to process multiple patients/subjects simultaneously.
+* **Biologically Accurate Cleaning:** Uses time-aware linear interpolation rather than flat median imputation to accurately bridge missing data gaps without destroying your natural physiological variance.
+* **Exploratory Data Analysis (EDA):** Automatically generates statistical summaries, distribution histograms, and correlation matrix heatmaps to understand data shape and relationships.
+* **Automated PDF Reporting:** Compiles everything into a layman-friendly PDF health report containing executive summaries, data quality assessments, and readable, paginated metrics.
+* **Signal Separation:** Automatically isolates distinct physiological signals (Heart Rate, HRV, SpO2, Sleep, Glucose, Stress, Activity) into dedicated datasets.
 
 ---
 
-## Data Processing Pipeline
+## Pipeline Architecture
 
-The pipeline operates in three distinct stages, fully automated via `run_pipeline.py`.
+The pipeline operates in three fully automated stages orchestrated by `run_pipeline.py`.
 
-### Stage 1: Ingestion & Structural Preprocessing
+### Stage 1: Ingestion & Aggregation (`src/ingestion.py`)
 
-* **Participant-wise crawling:** Recursively searches `data/raw/` for specific subject folders at all directory depths.
-* **Idempotency Check:** Skips files that have already been processed (set `force_rerun: true` in `config.yaml` to regenerate all outputs).
-* **Merging:** Combines multiple export files for the same category into a single DataFrame.
-* **Sheet Splitting:** Large datasets (>1M rows) are split across multiple Excel sheets automatically.
+- **Participant-wise Indexing:** Recursively searches `data/raw/` for specific subject folders at all directory depths.
+- **Intelligent Merging:** Combines scattered daily/weekly export files for the same health category into unified datasets.
+- **Fast Archiving:** Saves the merged categories directly to lightning-fast Apache Parquet files in `data/processed/`.
 
-### Stage 2: Analytical Cleaning
+### Stage 2: Analytical Cleaning (`src/cleaning.py`)
 
-* **Standardization:** Normalizes column names (`snake_case`) and fixes mixed date formats. Detects date columns named `start`, `end`, `log`, `day`, etc.
-* **Sanitization:** Removes null-only rows, duplicates, and non-numeric signal errors.
-* **Missing Value Handling:** Uses **median imputation** instead of zero-filling — preserves statistical validity for health metrics (HR, SpO2, glucose).
-* **Output:** Saves clean Excel files to `data/processed/`.
+- **Standardization:** Normalizes column names to `snake_case` and enforces standard ISO datetime formats.
+- **Sanitization:** Strips out completely empty rows, duplicates, and faulty/erroneous sensor errors.
+- **Time-Series Interpolation:** Sorts chronological data and bridges `NaN` (missing) gaps using linear interpolation.
 
-### Stage 3: Analysis & Reporting
+### Stage 3: Analysis & Reporting (`src/analysis.py` & `src/reporting.py`)
 
-* **Signal Separation:** Distinguishes Heart Rate from Heart Rate Variability (HRV) data automatically.
-* **Multi-Column Analysis:** Plots up to 4 key metrics per dataset with proper datetime axes.
-* **Periodic Summaries:** Generates both weekly and monthly aggregations (CSVs + charts).
-* **PDF Reports:** Comprehensive reports with executive summary, data quality assessment, trend charts, and data tables.
+- **Time-Series Analysis:** Generates weekly and monthly aggregation plots across all valid datasets.
+- **Exploratory Data Analysis (EDA):** Produces distribution charts, correlation heatmaps, and statistical matrices (Mean, Median, Skewness, percentiles).
+- **Executive PDF Generation:** Bundles visualizations and data tables into a final layman-friendly, multi-page PDF document.
 
 ---
 
-## Configuration
+## Configuration (`config.yaml`)
 
-All pipeline settings are controlled via `config/config.yaml`:
+Your pipeline settings are strictly controlled via `config/config.yaml`.
 
-| Setting | Description | Default |
-| --- | --- | --- |
-| `paths.root_dir` | Directory containing raw Fitbit export folders | `data/raw` |
-| `paths.output_dir` | Directory for cleaned Excel files | `data/processed` |
-| `paths.reports_dir` | Directory for generated reports and PDFs | `reports` |
-| `settings.subjects` | List of subject folder names to process | — |
-| `settings.max_rows_per_sheet` | Max rows per Excel sheet before splitting | `1000000` |
-| `settings.force_rerun` | Regenerate outputs even if they already exist | `true` |
-| `keywords` | List of keywords for matching data categories | See config file |
+| Setting                  | Description                                                      | Default            |
+| ------------------------ | ---------------------------------------------------------------- | ------------------ |
+| `paths.root_dir`       | Directory containing raw Fitbit export folders                   | `data/raw`       |
+| `paths.output_dir`     | Directory for the lightning-fast `.parquet` caches             | `data/processed` |
+| `paths.reports_dir`    | Directory for the generated PDFs, graphs, and CSVs               | `reports`        |
+| `settings.subjects`    | List of subject folder names to process                          | —                 |
+| `settings.force_rerun` | Set to `true` to regenerate outputs even if they already exist | `false`          |
+| `keywords`             | Internal regex keywords for mapping export files                 | See config file    |
 
 ---
 
@@ -94,64 +62,68 @@ All pipeline settings are controlled via `config/config.yaml`:
 
 ### 1. Setup Environment
 
+Clone the repository and install the dependencies:
+
 ```bash
-# Clone the repo
 git clone https://github.com/AssassinMaeve/Fitbit.git
 cd Fitbit
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
 ### 2. Prepare Data
 
-Place your raw Fitbit export folders inside the `data/raw/` directory.
+Place your raw Fitbit export folders inside the `data/raw/` directory. Each subject should have their own folder.
 
-* Example: `data/raw/Fitbit_ba/`
+* Example: `data/raw/Fitbit_test_subject_1/`
 
 ### 3. Configure Pipeline
 
-Edit `config/config.yaml` to list the subjects you want to process:
+Edit `config/config.yaml` to specify which subjects you want the pipeline to run on:
 
 ```yaml
-subjects:
-  - "Fitbit_ba"
-  - "Fitbit_lo"
+settings:
+  subjects:
+    - "Fitbit_test_subject_1"
+    - "Fitbit_test_subject_2"
 ```
 
 ### 4. Run Pipeline
+
+Execute the main orchestrator script:
 
 ```bash
 python run_pipeline.py
 ```
 
-The pipeline will print a summary at the end showing how many subjects succeeded/failed.
+*The pipeline will leverage your CPU's multiple cores to process patients concurrently and print a summary when finished.*
 
 ### 5. View Results
 
-* **Clean Data:** `data/processed/{subject}_cleaned/`
-* **Visual Reports:** `reports/{subject}/`
-* **PDF Reports:** `reports/{subject}/{subject}_Detailed_Report.pdf`
-* **Logs:** `logs/pipeline.log`
+All results are cleanly organized by subject:
+
+* **Cleaned Data:** `data/processed/{subject}_cleaned/`
+* **Visual Plots & EDA:** `reports/{subject}/`
+* **Final PDF Reports:** `reports/{subject}/{subject}_Detailed_Report.pdf`
+* **Diagnostic Logs:** `logs/pipeline.log`
 
 ---
 
 ## Ethics & Privacy
 
-* **No Personal Data:** No raw or processed participant data is committed to this repository.
-* **Local Processing:** All cleaning and analysis happen locally on your machine.
+* **No Personal Data:** No raw, identified, or processed participant data is committed to this repository.
+* **Local Processing:** All data cleaning and analysis operations occur 100% locally on your machine. No cloud API calls are made.
 * **Compliance:** The pipeline design adheres to standard ethical research guidelines for health data handling.
 
 ---
 
 ## Technologies Used
 
-* **Python 3.10+**
-* **Pandas** (Data Manipulation)
-* **Seaborn & Matplotlib** (Visualization)
-* **FPDF** (PDF Report Generation)
-* **PyYAML** (Configuration Management)
-* **OpenPyXL** (Excel I/O)
+* **Language:** Python 3.10+
+* **Data Processing:** Pandas, FastParquet / PyArrow
+* **Visualization:** Seaborn, Matplotlib
+* **Reporting:** FPDF
+* **Concurrency:** `concurrent.futures.ProcessPoolExecutor`
 
 ---
 
