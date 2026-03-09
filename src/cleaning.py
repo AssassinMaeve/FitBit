@@ -46,15 +46,17 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # Statistical Cleaning: Drop rows where ALL numeric values are missing
     numeric_cols = df.select_dtypes(include="number").columns
+    date_cols = [c for c in df.columns if pd.api.types.is_datetime64_any_dtype(df[c])]
+
     if len(numeric_cols) > 0:
         df.dropna(subset=numeric_cols, how="all", inplace=True)
+
+        # Ensure the dataframe is sorted by the first date column if available
+        if date_cols:
+            df.sort_values(by=date_cols[0], inplace=True)
 
         # Linear imputation: fill NaN using linear interpolation for time-series data
         for col in numeric_cols:
             df[col] = df[col].interpolate(method="linear", limit_direction="both")
-            
-            # If the column was entirely NaNs, interpolate won't do anything, fallback to 0
-            if df[col].isnull().all():
-                df[col] = df[col].fillna(0)
 
     return df

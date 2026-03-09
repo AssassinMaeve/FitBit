@@ -170,7 +170,7 @@ def analyze_subject(subject_name, config):
     """Run analysis for a single subject.
 
     Fix #2: Distinguishes HRV (Heart Rate Variability) files from Heart Rate.
-    Fix #14: Reads ALL sheets from multi-sheet Excel files.
+    Fix #14: Reads Parquet files directly.
     """
     processed_dir = os.path.join(config['paths']['output_dir'], f"{subject_name}_cleaned")
     reports_dir = os.path.join(

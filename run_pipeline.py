@@ -10,6 +10,7 @@ from src.reporting import generate_pdf_report
 
 def process_single_subject(subject, config):
     try:
+        setup_logging()
         logging.info(f"\n{'─' * 40}")
         logging.info(f" Processing: {subject}")
         logging.info(f"{'─' * 40}")
