@@ -49,12 +49,12 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     if len(numeric_cols) > 0:
         df.dropna(subset=numeric_cols, how="all", inplace=True)
 
-        # Median imputation: fill NaN with per-column median
+        # Linear imputation: fill NaN using linear interpolation for time-series data
         for col in numeric_cols:
-            median_val = df[col].median()
-            if pd.notna(median_val):
-                df[col] = df[col].fillna(median_val)
-            else:
-                logging.warning(f"Column '{col}' has no non-null values — cannot impute.")
+            df[col] = df[col].interpolate(method="linear", limit_direction="both")
+            
+            # If the column was entirely NaNs, interpolate won't do anything, fallback to 0
+            if df[col].isnull().all():
+                df[col] = df[col].fillna(0)
 
     return df

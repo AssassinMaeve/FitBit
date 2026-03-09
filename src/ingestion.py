@@ -56,7 +56,7 @@ def process_subject(subject_name, config):
             continue
 
         # Define the output path
-        output_filename = f"{subject_name}_{safe_filename(category)}.xlsx"
+        output_filename = f"{subject_name}_{safe_filename(category)}.parquet"
         output_file_path = os.path.join(person_out_dir, output_filename)
 
         # CHECK: If file exists and we are NOT forcing a rerun, SKIP IT
@@ -93,14 +93,14 @@ def process_subject(subject_name, config):
         # Merge all files for this category
         final_df = pd.concat(dfs, ignore_index=True)
 
-        # Save to Excel
-        save_to_excel(final_df, output_file_path, max_rows)
+        # Save to Parquet
+        save_to_parquet(final_df, output_file_path)
 
 
 def _process_single_file(file_path, subject_name, file_lower, out_dir, max_rows, force_rerun):
     """Process a single data file found at root level."""
     base_name = os.path.splitext(os.path.basename(file_path))[0]
-    output_filename = f"{subject_name}_{safe_filename(base_name)}.xlsx"
+    output_filename = f"{subject_name}_{safe_filename(base_name)}.parquet"
     output_file_path = os.path.join(out_dir, output_filename)
 
     if os.path.exists(output_file_path) and not force_rerun:
@@ -116,30 +116,15 @@ def _process_single_file(file_path, subject_name, file_lower, out_dir, max_rows,
 
         if not df.empty:
             df["source_file"] = os.path.basename(file_path)
-            save_to_excel(df, output_file_path, max_rows)
+            save_to_parquet(df, output_file_path)
     except Exception as e:
         logging.warning(f"      Failed to read {file_path}: {e}")
 
 
-def save_to_excel(df, path, max_rows):
-    """Handles logic for splitting large datasets into multiple Excel sheets.
-
-    Fix #19: Uses math.ceil to avoid creating an empty trailing sheet
-    when total_rows is an exact multiple of max_rows.
-    """
+def save_to_parquet(df, path):
+    """Saves dataframe to Parquet, which is much faster than Excel."""
     try:
-        with pd.ExcelWriter(path, engine="openpyxl") as writer:
-            total_rows = len(df)
-            if total_rows <= max_rows:
-                df.to_excel(writer, sheet_name="data", index=False)
-            else:
-                num_sheets = math.ceil(total_rows / max_rows)
-                for i in range(num_sheets):
-                    start = i * max_rows
-                    end = start + max_rows
-                    chunk = df.iloc[start:end]
-                    if not chunk.empty:
-                        chunk.to_excel(writer, sheet_name=f"data_{i+1}", index=False)
+        df.to_parquet(path, index=False)
         logging.info(f"     ✅ Saved: {path}")
     except Exception as e:
         logging.error(f"      Failed to save {path}: {e}")

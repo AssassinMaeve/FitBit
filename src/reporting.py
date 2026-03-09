@@ -114,6 +114,78 @@ class PDFReport(FPDF):
         self.ln(5)
 
 
+def get_layman_explanation(metric_key):
+    """Provides a simple layman's explanation for what a metric and its distribution means."""
+    explanations = {
+        "heart_rate": "Heart Rate shows how fast your heart beats. A consistent, tight curve "
+                      "in the distribution means your heart rate is very stable. A wider spread "
+                      "means your heart rate fluctuates more throughout the day, which is normal "
+                      "if you exercise.",
+        "hrv": "Heart Rate Variability (HRV) measures the variation in time between heartbeats. "
+               "A higher and more spread-out HRV is generally a sign of good fitness and recovery.",
+        "sleep_score": "Sleep Score grades your sleep quality out of 100. Most people aim for a "
+                       "consistent score above 80. The distribution shows how often you hit good scores.",
+        "stress_score": "Stress Score indicates your body's physical stress level. A higher score "
+                        "actually means your body is showing fewer signs of physical stress.",
+        "oxygen": "Oxygen Saturation (SpO2) measures oxygen levels in your blood. Healthy ranges "
+                  "are usually between 95% and 100%.",
+        "activity": "Activity measures your physical movement. Highly skewed data means you have "
+                    "short bursts of intense activity, while a flat curve means steady activity.",
+        "glucose": "Glucose measures your blood sugar levels. A narrow distribution within healthy "
+                   "ranges indicates stable blood sugar."
+    }
+    return explanations.get(metric_key, "This metric tracks physiological changes over time. Review the distribution to see your most common values.")
+
+
+def _render_eda_section(pdf, section_num, key, label, report_dir):
+    """Render the Exploratory Data Analysis section for a specific metric."""
+    stats_csv = os.path.join(report_dir, f"eda_stats_{key}.csv")
+    dist_img = os.path.join(report_dir, f"eda_dist_{key}.png")
+    corr_img = os.path.join(report_dir, f"eda_corr_{key}.png")
+
+    if not (os.path.exists(stats_csv) or os.path.exists(dist_img)):
+        return section_num
+
+    pdf.add_page()
+    pdf.chapter_title(f"{section_num}. {label} - Exploratory Analysis")
+
+    # Layman explanation
+    pdf.set_font('Arial', '', 10)
+    pdf.multi_cell(0, 6, get_layman_explanation(key))
+    pdf.ln(5)
+
+    # Descriptive Stats Table
+    if os.path.exists(stats_csv):
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(0, 10, "Statistical Summary (What is normal for you?)", 0, 1)
+        
+        pdf.set_font('Arial', 'I', 9)
+        pdf.multi_cell(0, 5, "- Mean/Median: Your average everyday value.\n"
+                             "- 25% to 75%: The typical range where most of your data falls.\n"
+                             "- Skewness: Positive = sudden high spikes. Negative = sudden drops.")
+        pdf.ln(3)
+        _render_data_table(pdf, stats_csv)
+
+    # Distribution Chart
+    if os.path.exists(dist_img):
+        pdf.ln(5)
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(0, 10, "Data Distribution (Shape of your data)", 0, 1)
+        pdf.image(dist_img, x=10, w=180)
+
+    # Correlation Chart
+    if os.path.exists(corr_img):
+        pdf.add_page()
+        pdf.set_font('Arial', 'B', 10)
+        pdf.cell(0, 10, "Correlations (How variables relate)", 0, 1)
+        pdf.set_font('Arial', 'I', 9)
+        pdf.multi_cell(0, 5, "Scores closer to 1.0 mean variables move together. Scores closer to -1.0 mean they move in opposite directions.")
+        pdf.ln(3)
+        pdf.image(corr_img, x=10, w=180)
+
+    return section_num + 1
+
+
 def _render_data_table(pdf, csv_path):
     """Fix #8: Render ALL columns from a CSV with proper headers.
     Fix #21: Wrap formatting in try/except to handle non-numeric values.
@@ -271,6 +343,9 @@ def generate_pdf_report(subject_name, config):
     # Detailed Analysis sections — weekly AND monthly (Fix #6)
     for key in valid_keys:
         label = target_metrics[key]
+
+        # EDA section
+        section_num = _render_eda_section(pdf, section_num, key, label, report_dir)
 
         # Weekly section
         _render_metric_section(pdf, section_num, key, label, report_dir, "weekly")

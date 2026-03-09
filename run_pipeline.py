@@ -1,9 +1,35 @@
 import sys
 import logging
+import concurrent.futures
+import traceback
 from src.utils import load_config, setup_logging
 from src.ingestion import process_subject
 from src.analysis import analyze_subject
 from src.reporting import generate_pdf_report
+
+
+def process_single_subject(subject, config):
+    try:
+        logging.info(f"\n{'─' * 40}")
+        logging.info(f" Processing: {subject}")
+        logging.info(f"{'─' * 40}")
+
+        # Step 1: Ingestion & Cleaning
+        process_subject(subject, config)
+
+        # Step 2: Analysis & Visualization
+        analyze_subject(subject, config)
+
+        # Step 3: PDF Report Generation
+        generate_pdf_report(subject, config)
+
+        logging.info(f" ✅ {subject} completed successfully")
+        return subject, True, None
+
+    except Exception as e:
+        err = f"{e}\n{traceback.format_exc()}"
+        logging.error(f" ❌ Critical error processing {subject}: {e}", exc_info=True)
+        return subject, False, err
 
 
 def main():
@@ -28,28 +54,15 @@ def main():
     successes = []
     failures = []
 
-    # 4. Iterate and Process
-    for subject in subjects:
-        try:
-            logging.info(f"\n{'─' * 40}")
-            logging.info(f" Processing: {subject}")
-            logging.info(f"{'─' * 40}")
-
-            # Step 1: Ingestion & Cleaning
-            process_subject(subject, config)
-
-            # Step 2: Analysis & Visualization
-            analyze_subject(subject, config)
-
-            # Step 3: PDF Report Generation
-            generate_pdf_report(subject, config)
-
-            successes.append(subject)
-            logging.info(f" ✅ {subject} completed successfully")
-
-        except Exception as e:
-            failures.append((subject, str(e)))
-            logging.error(f" ❌ Critical error processing {subject}: {e}", exc_info=True)
+    # 4. Iterate and Process in Parallel
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {executor.submit(process_single_subject, subj, config): subj for subj in subjects}
+        for future in concurrent.futures.as_completed(futures):
+            subj, success, err = future.result()
+            if success:
+                successes.append(subj)
+            else:
+                failures.append((subj, err))
 
     # 5. Summary
     logging.info(f"\n{'═' * 60}")
